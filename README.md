@@ -1,5 +1,9 @@
 # sempredict
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/NicholasDanks/sempredict/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NicholasDanks/sempredict/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 Out-of-sample prediction assessment for structural equation models, across
 estimators.
 
