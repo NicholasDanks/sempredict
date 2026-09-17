@@ -1,0 +1,39 @@
+Package: sempredict
+Type: Package
+Title: Out-of-Sample Prediction Assessment for Structural Equation Models
+Version: 0.1.0
+Authors@R: c(
+    person("Nicholas P.", "Danks", email = "nicholasdanks@iss.nthu.edu.tw", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-6902-2708")),
+    person("Pratyush N.", "Sharma", role = "aut",
+           comment = c(ORCID = "0000-0003-3913-0390")))
+Description: One assessment layer for out-of-sample prediction across
+    covariance-based SEM fitted with 'lavaan' and PLS or consistent PLS (PLSc)
+    fitted with 'seminr'. Turns any fitted model into case-level predictions by
+    either of two constructions, the construct-score chain used by PLSpredict or
+    the model-implied regression of de Rooij et al. (2023)
+    <doi:10.1080/10705511.2022.2061494>, checks PLSc solutions for admissibility,
+    and runs repeated k-fold cross-validation with identical folds for every
+    method. Reports RMSE with Monte Carlo standard errors, the overfit ratio,
+    the dispersion slope, benchmark comparisons, the cross-validated predictive
+    ability test (CVPAT) of Liengaard et al. (2021) <doi:10.1111/deci.12445>,
+    and prediction failures.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends: R (>= 4.1)
+Imports:
+    lavaan (>= 0.6-13),
+    seminr (>= 2.5.0),
+    stats,
+    utils
+Suggests:
+    ggplot2,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+URL: https://github.com/NicholasDanks/sempredict
+BugReports: https://github.com/NicholasDanks/sempredict/issues

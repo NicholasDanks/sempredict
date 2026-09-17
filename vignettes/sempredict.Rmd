@@ -1,0 +1,146 @@
+---
+title: "Assessing out-of-sample prediction across SEM estimators"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Assessing out-of-sample prediction across SEM estimators}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
+```
+
+sempredict is one assessment layer over several estimators. You fit the model
+with lavaan (ML), seminr (PLS) or seminr with `reflective()` constructs
+(consistent PLS, PLSc); the package turns each fit into case-level predictions
+of observed outcome indicators from observed predictor indicators, cross-validates
+every method on identical folds, and reports the comparison.
+
+Two prediction constructions are available.
+
+* **Model-implied regression** (`"implied"`): predict the outcome items from the
+  predictor items by the regression the fitted model's covariances imply
+  (de Rooij et al., 2023). For lavaan this is `lavPredictY()`. For PLSc the
+  implied covariances are built from the corrected loadings and construct
+  correlations, so that scores and parameters share a metric; when the corrected
+  solution is inadmissible the prediction is reported as unavailable.
+* **Construct-score chain** (`"chain"`): weight the predictor items into
+  construct scores, carry them through the path coefficients, and map them to
+  the outcome items through the loadings (PLSpredict). Under PLSc this applies
+  factor-metric coefficients to composite-metric scores and over-disperses the
+  predictions by roughly one over the square root of the antecedent's reliability.
+
+## PoliticalDemocracy with three estimators
+
+```{r setup}
+library(sempredict)
+d <- lavaan::PoliticalDemocracy
+y_names <- paste0("y", 5:8)                       # democracy 1965
+x_da    <- c(paste0("x", 1:3), paste0("y", 1:4))  # direct antecedents
+x_ea    <- paste0("x", 1:3)                       # earliest antecedent only
+
+lav_syntax <- "
+  ind60 =~ x1 + x2 + x3
+  dem60 =~ y1 + y2 + y3 + y4
+  dem65 =~ y5 + y6 + y7 + y8
+  dem60 ~ ind60
+  dem65 ~ ind60 + dem60
+"
+sm <- seminr::relationships(
+  seminr::paths(from = "ind60", to = "dem60"),
+  seminr::paths(from = c("ind60", "dem60"), to = "dem65"))
+mm_pls <- seminr::constructs(
+  seminr::composite("ind60", paste0("x", 1:3), weights = seminr::mode_A),
+  seminr::composite("dem60", paste0("y", 1:4), weights = seminr::mode_A),
+  seminr::composite("dem65", paste0("y", 5:8), weights = seminr::mode_A))
+mm_plsc <- seminr::constructs(
+  seminr::reflective("ind60", paste0("x", 1:3)),
+  seminr::reflective("dem60", paste0("y", 1:4)),
+  seminr::reflective("dem65", paste0("y", 5:8)))
+
+quiet <- function(expr) { utils::capture.output(out <- suppressMessages(expr)); out }
+methods <- list(
+  ML   = sem_method(function(tr) lavaan::sem(lav_syntax, data = tr, meanstructure = TRUE, warn = FALSE)),
+  PLS  = sem_method(function(tr) quiet(seminr::estimate_pls(tr, mm_pls, sm)), construction = "chain"),
+  PLSc = sem_method(function(tr) quiet(seminr::estimate_pls(tr, mm_plsc, sm)),
+                    construction = c("chain", "implied")))
+```
+
+A single split shows the pieces: `sem_params()` extracts what prediction needs
+and `predict_oos()` produces the predictions.
+
+```{r single-split}
+set.seed(1)
+id <- sample(nrow(d), 60)
+fit <- quiet(seminr::estimate_pls(d[id, ], mm_plsc, sm))
+p <- sem_params(fit)
+p
+head(predict_oos(p, d[-id, ], y_names, x_da, construction = "implied"), 3)
+```
+
+Repeated k-fold cross-validation gives every method the same folds. Five
+repetitions keep this vignette quick; the article uses twenty.
+
+```{r cv-da}
+cv_da <- cv_predict(methods, d, y_names, x_da, k = 10, reps = 5, seed = 20260825)
+cv_da
+assess(cv_da)
+failures(cv_da)
+```
+
+The PLSc model-implied regression is unavailable on the folds where the
+corrected solution is inadmissible. To compare like for like, rescore every
+method on the folds where it was available.
+
+```{r common}
+assess(cv_da, common = "PLSc_implied")
+```
+
+CVPAT, applied as published on one repetition, tests each method against a
+benchmark; the range of `p` across repetitions is a sensitivity check, not
+additional evidence, because repetitions share training data.
+
+```{r cvpat}
+cvpat_table(cv_da, benchmark = "lm")
+```
+
+Withholding the 1960 democracy items asks the structural model to carry
+information from industrialization through the mediator.
+
+```{r cv-ea}
+cv_ea <- cv_predict(methods, d, y_names, x_ea, k = 10, reps = 5, seed = 20260825)
+assess(cv_ea, common = "PLSc_implied")
+```
+
+## A low-reliability case: where the PLSc chain goes wrong
+
+In the ECSI data shipped with seminr, the three-item expectations construct
+has rho_A near .46. The chain's dispersion slope falls to about .63, meaning a
+one-point difference in prediction corresponds to only .63 points of observed
+difference, while the model-implied regression from the same PLSc fits is near
+.92.
+
+```{r mobi}
+m <- seminr::mobi
+mm_c <- seminr::constructs(seminr::reflective("EXP", paste0("CUEX", 1:3)),
+                           seminr::reflective("SAT", paste0("CUSA", 1:3)))
+sm_c <- seminr::relationships(seminr::paths(from = "EXP", to = "SAT"))
+plsc <- sem_method(function(tr) quiet(seminr::estimate_pls(tr, mm_c, sm_c)),
+                   construction = c("chain", "implied"))
+cv_m <- cv_predict(list(PLSc = plsc), m, paste0("CUSA", 1:3), paste0("CUEX", 1:3),
+                   k = 10, reps = 5, seed = 20260825)
+assess(cv_m)
+```
+
+```{r plot, eval = requireNamespace("ggplot2", quietly = TRUE)}
+plot_dispersion(cv_m)
+```
+
+## References
+
+de Rooij, M., Karch, J. D., Fokkema, M., Bakk, Z., Pratiwi, B. C., & Kelderman, H. (2023). SEM-based out-of-sample predictions. *Structural Equation Modeling*, 30(1), 132–148.
+
+Liengaard, B. D., Sharma, P. N., Hult, G. T. M., Jensen, M. B., Sarstedt, M., Hair, J. F., & Ringle, C. M. (2021). Prediction: Coveted, yet forsaken? Introducing a cross-validated predictive ability test in partial least squares path modeling. *Decision Sciences*, 52(2), 362–392.
+
+Shmueli, G., Sarstedt, M., Hair, J. F., Cheah, J.-H., Ting, H., Vaithilingam, S., & Ringle, C. M. (2019). Predictive model assessment in PLS-SEM: Guidelines for using PLSpredict. *European Journal of Marketing*, 53(11), 2322–2347.
