@@ -68,3 +68,50 @@ test_that("topological order handles a non-model order and rejects cycles", {
   B["c", "a"] <- .1
   expect_error(sempredict:::topo_order(B), "recursive")
 })
+
+# The tutorial's fold stream: seed 20260825, one draw of fold labels per repetition.
+tutorial_folds <- function(n, reps = 20, k = 10, seed = 20260825) {
+  set.seed(seed)
+  lapply(seq_len(reps), function(r) sample(rep(seq_len(k), length.out = n)))
+}
+
+test_that("a PLSc loading above one is inadmissible, not floored", {
+  # Repetition 1, first training fold whose PLSc solution has a standardised
+  # loading above one (a negative residual variance).
+  folds <- tutorial_folds(nrow(pd))[[1]]
+  hit <- NULL
+  for (k in 1:10) {
+    m <- quiet_pls(pd[folds != k, ], pd_mm_plsc, pd_sm)
+    if (any(rowSums(m$outer_loadings^2) > 1)) { hit <- m; break }
+  }
+  expect_false(is.null(hit))
+  p <- sem_params(hit)
+  expect_false(p$admissible)
+  expect_match(p$reason, "loading above one")
+  expect_match(p$reason, "x1|x2")           # the offending item is named
+  expect_null(p$Sigma)
+  expect_false(is.null(p$chain))            # the score chain stays available
+  expect_error(predict_oos(p, newdata = pd[folds == k, ], xnames = pd_x_ea, ynames = pd_y,
+                           construction = "implied"))
+})
+
+test_that("plain PLS is never flagged: composite loadings cannot exceed one", {
+  p <- sem_params(quiet_pls(pd, pd_mm_pls, pd_sm))
+  expect_true(p$admissible)
+  expect_true(all(diag(p$Theta) >= 0))
+})
+
+test_that("tutorial oracle: 82 of 200 PoliticalDemocracy folds are inadmissible", {
+  skip_on_cran()
+  reasons <- character(0)
+  for (folds in tutorial_folds(nrow(pd)))
+    for (k in 1:10) {
+      p <- sem_params(quiet_pls(pd[folds != k, ], pd_mm_plsc, pd_sm))
+      if (!p$admissible) reasons <- c(reasons, p$reason)
+    }
+  expect_length(reasons, 82)
+  expect_equal(sum(grepl("^inadmissible: standardised loading above one", reasons)), 65)
+  expect_equal(sum(grepl("loading", reasons)), 73)   # 65 + 8 that also fail another check
+  expect_equal(sum(grepl("not positive definite", reasons)), 15)
+  expect_equal(sum(grepl("correlation >= 1", reasons)), 2)
+})

@@ -37,9 +37,18 @@ PLS (constructs specified with \code{seminr::reflective()}) the construct
 correlations are corrected for unreliability with each construct's
 rho_A, propagated through the structural model, and checked for
 admissibility: a corrected correlation of absolute value one or more, a
-non-positive-definite construct correlation matrix, or a rho_A outside
-(0, 1] makes the model-implied regression unavailable. The chain is
-always available because it never forms the implied covariances.
+non-positive-definite construct correlation matrix, a rho_A outside
+(0, 1], or a standardised loading above one makes the model-implied
+regression unavailable. The chain is always available because it never
+forms the implied covariances.
+}
+\details{
+A loading above one implies a negative residual variance (a Heywood case).
+It is not repaired by flooring that variance at a small positive value: a
+floored item becomes an error-free measure of its construct and takes
+nearly all the weight in the inverse of the predictor covariance matrix, so
+predictions from such a solution are driven by the floor rather than by the
+model. The solution is reported as inadmissible and \code{reason} names the items.
 }
 \examples{
 fit <- lavaan::sem("ind60 =~ x1 + x2 + x3

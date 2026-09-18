@@ -24,7 +24,9 @@ Two prediction constructions are available.
   (de Rooij et al., 2023). For lavaan this is `lavPredictY()`. For PLSc the
   implied covariances are built from the corrected loadings and construct
   correlations, so that scores and parameters share a metric; when the corrected
-  solution is inadmissible the prediction is reported as unavailable.
+  solution is inadmissible (a construct correlation of one or more, a construct
+  correlation matrix that is not positive definite, or a loading above one) the
+  prediction is reported as unavailable.
 * **Construct-score chain** (`"chain"`): weight the predictor items into
   construct scores, carry them through the path coefficients, and map them to
   the outcome items through the loadings (PLSpredict). Under PLSc this applies
@@ -68,7 +70,12 @@ methods <- list(
 ```
 
 A single split shows the pieces: `sem_params()` extracts what prediction needs
-and `predict_oos()` produces the predictions.
+and `predict_oos()` produces the predictions. With 60 training cases this PLSc
+solution has a loading above one, which implies a negative residual variance,
+so the model-implied regression is reported as unavailable and the reason is
+given. The construct-score chain never forms the implied covariances and
+remains available. Always check `admissible` before asking for the
+model-implied regression.
 
 ```{r single-split}
 set.seed(1)
@@ -76,7 +83,17 @@ id <- sample(nrow(d), 60)
 fit <- quiet(seminr::estimate_pls(d[id, ], mm_plsc, sm))
 p <- sem_params(fit)
 p
-head(predict_oos(p, d[-id, ], y_names, x_da, construction = "implied"), 3)
+head(predict_oos(p, d[-id, ], y_names, x_da, construction = "chain"), 3)
+if (p$admissible)
+  head(predict_oos(p, d[-id, ], y_names, x_da, construction = "implied"), 3)
+```
+
+On the full sample the same model is admissible:
+
+```{r full-sample}
+p_full <- sem_params(quiet(seminr::estimate_pls(d, mm_plsc, sm)))
+p_full$admissible
+head(predict_oos(p_full, d, y_names, x_da, construction = "implied"), 3)
 ```
 
 Repeated k-fold cross-validation gives every method the same folds. Five

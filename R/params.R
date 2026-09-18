@@ -8,9 +8,17 @@
 #' correlations are corrected for unreliability with each construct's
 #' rho_A, propagated through the structural model, and checked for
 #' admissibility: a corrected correlation of absolute value one or more, a
-#' non-positive-definite construct correlation matrix, or a rho_A outside
-#' (0, 1] makes the model-implied regression unavailable. The chain is
-#' always available because it never forms the implied covariances.
+#' non-positive-definite construct correlation matrix, a rho_A outside
+#' (0, 1], or a standardised loading above one makes the model-implied
+#' regression unavailable. The chain is always available because it never
+#' forms the implied covariances.
+#'
+#' A loading above one implies a negative residual variance (a Heywood case).
+#' It is not repaired by flooring that variance at a small positive value: a
+#' floored item becomes an error-free measure of its construct and takes
+#' nearly all the weight in the inverse of the predictor covariance matrix, so
+#' predictions from such a solution are driven by the floor rather than by the
+#' model. The solution is reported as inadmissible and `reason` names the items.
 #'
 #' @param fit A fitted `lavaan` object (single group, fitted with
 #'   `meanstructure = TRUE`) or a `seminr_model`.
@@ -85,9 +93,14 @@ sem_params.seminr_model <- function(fit, plsc = NULL, ...) {
   rA <- stats::setNames(rep(1, length(constructs)), constructs)
   Phi_s <- stats::cor(fit$construct_scores)[constructs, constructs]
   estimator <- if (plsc) "PLSc" else "PLS"
-  bad <- function(msg)
+  # a squared standardised loading above one is a negative residual variance
+  l2 <- rowSums(L^2)
+  heywood <- plsc && any(l2 > 1 + 1e-8)
+  also <- if (heywood) "; a loading also exceeds one" else ""
+  bad <- function(msg, tag = also)
     new_sem_params(estimator = estimator, Sigma = NULL, mu = mu, sd = s,
-                   chain = chain, rhoA = rA, admissible = FALSE, reason = msg)
+                   chain = chain, rhoA = rA, admissible = FALSE,
+                   reason = paste0(msg, tag))
   if (plsc) {
     for (cn in reflective) rA[cn] <- as.numeric(seminr::rho_A(fit, cn))
     if (any(!is.finite(rA)) || any(rA <= 0) || any(rA > 1))
@@ -104,7 +117,10 @@ sem_params.seminr_model <- function(fit, plsc = NULL, ...) {
   if (inherits(Phi, "error")) return(bad(conditionMessage(Phi)))
   if (min(eigen(Phi, symmetric = TRUE, only.values = TRUE)$values) <= 1e-8)
     return(bad("implied construct correlation matrix not positive definite"))
-  Theta <- diag(pmax(1 - rowSums(L^2), 1e-6), nrow = length(items))
+  if (heywood)
+    return(bad(sprintf("inadmissible: standardised loading above one (%s)",
+                       paste(names(l2)[l2 > 1 + 1e-8], collapse = ", ")), tag = ""))
+  Theta <- diag(pmax(1 - l2, 0), nrow = length(items))
   dimnames(Theta) <- list(items, items)
   Sigma_z <- L %*% Phi %*% t(L) + Theta
   Sigma <- Sigma_z * outer(s, s)
