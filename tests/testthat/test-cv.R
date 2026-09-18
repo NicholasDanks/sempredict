@@ -85,6 +85,27 @@ test_that("tutorial oracle: mobi EXP -> SAT, 20 x 10-fold, seed 20260825 (Table 
   expect_equal(round(tab$p[tab$model == "PLSc_implied"], 3), 0.003)
 })
 
+test_that("tutorial oracle: PoliticalDemocracy, 20 x 10-fold, seed 20260825 (Table 2 of the article)", {
+  skip_on_cran()
+  # A PLSc loading above one is inadmissible, so the model-implied regression is
+  # unavailable on 82 of 200 folds and every row is rescored on the common 880 cells.
+  ms <- list(ML = sem_method(function(tr) lavaan::sem(pd_syntax, data = tr, meanstructure = TRUE, warn = FALSE)),
+             PLS = pls_method(pd_mm_pls, pd_sm, construction = "chain"),
+             PLSc = pls_method(pd_mm_plsc, pd_sm, construction = c("chain", "implied")))
+  want <- list(DA = c(ML = 2.0481, PLS = 2.0384, PLSc_chain = 2.0460, PLSc_implied = 2.0668, lm = 2.1120, mean = 3.1213),
+               EA = c(ML = 2.8474, PLS = 2.8453, PLSc_chain = 2.8470, PLSc_implied = 2.8327, lm = 2.8639, mean = 3.1213))
+  slope <- list(DA = c(PLSc_chain = 0.9379, PLSc_implied = 0.9694), EA = c(PLSc_chain = 0.8358, PLSc_implied = 0.8785))
+  for (design in c("DA", "EA")) {
+    cv <- cv_predict(ms, pd, pd_y, if (design == "DA") pd_x_da else pd_x_ea, k = 10, reps = 20, seed = 20260825)
+    expect_equal(unname(cv$fail["PLSc_implied"]), 82L)
+    a <- assess(cv, common = "PLSc_implied")
+    for (m in names(want[[design]]))
+      expect_equal(a$RMSE[a$method == m], unname(want[[design]][m]), tolerance = 5e-5, label = paste(design, m, "RMSE"))
+    for (m in names(slope[[design]]))
+      expect_equal(a$dispersion_slope[a$method == m], unname(slope[[design]][m]), tolerance = 1e-4, label = paste(design, m, "slope"))
+  }
+})
+
 test_that("plot_dispersion returns a ggplot", {
   skip_if_not_installed("ggplot2")
   ms <- list(PLS = pls_method(mobi_mm_pls, mobi_sm))
