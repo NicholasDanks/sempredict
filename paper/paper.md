@@ -76,7 +76,8 @@ applicable in PLSc-SEM". `sempredict` resolves this by predicting from the
 PLSc solution through its implied covariances, in which scores and parameters
 share a metric, and by reporting the solution as unavailable, rather than
 silently wrong, whenever the reliability correction produces an inadmissible
-construct correlation matrix. In the package's tests, on the ECSI customer
+solution: a construct correlation of one or more, a construct correlation
+matrix that is not positive definite, or a loading above one. In the package's tests, on the ECSI customer
 satisfaction data shipped with `seminr`, the chain's dispersion slope of
 observed on predicted is 0.63 while the model-implied regression from the same
 PLSc fits returns 0.92.
@@ -84,9 +85,10 @@ PLSc fits returns 0.92.
 Existing software covers parts of this. `lavaan` predicts from one fitted
 covariance model; `seminr::predict_pls()` implements PLSpredict for PLS;
 `cSEM` [@rademaker2020] offers PLSpredict-style prediction with several
-composite estimators and benchmarks. None runs several estimators through one
-fold scheme with one set of diagnostics, and none provides the PLSc
-model-implied regression with an admissibility check. `sempredict` is the
+composite estimators and benchmarks, including a construct-score chain for PLSc
+with an admissibility check. None runs several estimators through one fold
+scheme with one set of diagnostics, and none provides the PLSc model-implied
+regression. `sempredict` is the
 companion software for a tutorial on out-of-sample prediction across SEM
 estimators [@danks2026] and reproduces every number in it.
 
@@ -133,7 +135,7 @@ Correctness is tested against oracles rather than against the package's own
 output: predictions from `lavaan` parameters equal `lavPredictY()` to
 $10^{-10}$; construct scores reconstructed for the chain equal `seminr`'s own;
 the ratio of the PLSc chain's dispersion to the model-implied regression's on
-the ECSI data equals $1/\sqrt{\rho_A}$ to three decimals; and a twenty-times
+the ECSI data equals $1/\sqrt{\rho_A}$ to within .002; and a twenty-times
 ten-fold run with a fixed seed reproduces the tutorial's published table to
 four decimals.
 
