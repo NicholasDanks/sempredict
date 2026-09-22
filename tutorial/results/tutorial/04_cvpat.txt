@@ -1,0 +1,66 @@
+CVPAT on a single 10-fold repetition — 2026-09-22 10:55:12 
+
+--- PoliticalDemocracy, direct antecedents (y5-y8 from x1-x3, y1-y4) ---
+Benchmark: lm
+              n     d     t     p p_min_20reps p_max_20reps reps_p_lt_05
+cbsem        75 0.315 1.755 0.042        0.034        0.252            6
+pls_chain    75 0.366 1.967 0.026        0.017        0.236            8
+plsc_chain   75 0.334 1.790 0.039        0.025        0.318            4
+plsc_cov_blp 37 0.206 0.842 0.203        0.045        0.797            1
+Benchmark: mean
+              n     d     t     p p_min_20reps p_max_20reps reps_p_lt_05
+cbsem        75 5.440 5.654 0.000            0        0.000           20
+pls_chain    75 5.491 5.709 0.000            0        0.000           20
+plsc_chain   75 5.459 5.530 0.000            0        0.000           20
+plsc_cov_blp 37 4.502 3.451 0.001            0        0.001           20
+lm           75 5.124 5.037 0.000            0        0.000           20
+
+--- PoliticalDemocracy, earliest antecedent (y5-y8 from x1-x3) ---
+Benchmark: lm
+              n     d     t     p p_min_20reps p_max_20reps reps_p_lt_05
+cbsem        75 0.403 2.612 0.005        0.001        0.095           16
+pls_chain    75 0.389 2.395 0.010        0.004        0.182           15
+plsc_chain   75 0.388 2.367 0.010        0.005        0.192           14
+plsc_cov_blp 37 0.205 1.714 0.048        0.001        0.513           10
+Benchmark: mean
+              n     d     t     p p_min_20reps p_max_20reps reps_p_lt_05
+cbsem        75 1.679 2.113 0.019        0.013        0.035           20
+pls_chain    75 1.665 2.030 0.023        0.015        0.042           20
+plsc_chain   75 1.664 2.004 0.024        0.017        0.045           20
+plsc_cov_blp 37 1.143 0.968 0.170        0.005        0.302            9
+lm           75 1.276 1.554 0.062        0.026        0.115            7
+
+--- mobi case 1: EXP -> SAT ---
+Benchmark: lm
+               n      d      t     p p_min_20reps p_max_20reps reps_p_lt_05
+cbsem        250  0.021  1.131 0.130        0.031        0.568            1
+pls_chain    250  0.034  4.174 0.000        0.000        0.068           19
+plsc_chain   250 -0.099 -1.841 0.967        0.846        0.974            0
+plsc_cov_blp 250  0.025  3.017 0.001        0.000        0.108           19
+Benchmark: mean
+               n     d     t     p p_min_20reps p_max_20reps reps_p_lt_05
+cbsem        250 0.402 3.399 0.000        0.000        0.002           20
+pls_chain    250 0.415 3.412 0.000        0.000        0.001           20
+plsc_chain   250 0.282 1.697 0.045        0.026        0.076           13
+plsc_cov_blp 250 0.407 3.447 0.000        0.000        0.001           20
+lm           250 0.381 3.201 0.001        0.000        0.004           20
+
+--- mobi case 2: IMAG + EXP -> SAT ---
+Benchmark: lm
+               n     d     t     p p_min_20reps p_max_20reps reps_p_lt_05
+cbsem        250 0.076 2.980 0.002        0.001        0.062           19
+pls_chain    250 0.068 2.430 0.008        0.002        0.092           19
+plsc_chain   250 0.014 0.392 0.348        0.007        0.962            1
+plsc_cov_blp 250 0.067 2.862 0.002        0.000        0.046           20
+Benchmark: mean
+               n     d     t p p_min_20reps p_max_20reps reps_p_lt_05
+cbsem        250 0.883 6.334 0            0            0           20
+pls_chain    250 0.875 6.243 0            0            0           20
+plsc_chain   250 0.821 5.597 0            0            0           20
+plsc_cov_blp 250 0.873 6.273 0            0            0           20
+lm           250 0.807 5.645 0            0            0           20
+
+n = held-out cases with a finite loss for both model and benchmark on repetition 1
+(PLSc covariance BLP: cases in inadmissible folds are excluded, so its n is smaller).
+d = mean(benchmark loss - model loss); positive favours the model.
+p is one-sided (H1: model loss below benchmark loss); p > .5 means d < 0.

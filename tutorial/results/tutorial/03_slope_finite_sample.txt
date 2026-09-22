@@ -1,0 +1,20 @@
+Finite-sample dispersion-slope reference — 2026-09-18 13:25:36 
+lavaan 0.6.21 | reps 200 | folds 10 | seed 20260825 
+
+n =   75  (replications with a non-converged fold, dropped: DA 0, EA 0)
+ design estimated_rule oracle_true_moments
+     DA  0.973 (0.011)       0.995 (0.064)
+     EA  0.872 (0.068)       1.010 (0.211)
+
+n =  300  (replications with a non-converged fold, dropped: DA 0, EA 0)
+ design estimated_rule oracle_true_moments
+     DA  0.993 (0.002)       1.001 (0.032)
+     EA  0.970 (0.014)       1.002 (0.109)
+
+n = 1000  (replications with a non-converged fold, dropped: DA 0, EA 0)
+ design estimated_rule oracle_true_moments
+     DA  0.998 (0.001)       0.998 (0.016)
+     EA  0.991 (0.004)       0.996 (0.054)
+
+Entries are mean (SD across replications) of the pooled centred slope of observed y5-y8 on predicted.
+Observed all-fold ML slopes (n = 75, supplement S6): DA 0.972, EA 0.855.

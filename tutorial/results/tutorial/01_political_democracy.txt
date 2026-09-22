@@ -1,0 +1,151 @@
+PoliticalDemocracy tutorial run — 2026-09-18 13:30:15 
+lavaan 0.6.21 | seminr 2.6.0 
+
+=== A. Full-sample fits ===
+CB-SEM (no residual cov): chi2(41) = 72.46, p = 0.002, CFI = 0.953, RMSEA = 0.101
+CB-SEM (Bollen, resid cov): chi2(35) = 38.13, p = 0.329, CFI = 0.995
+ML latent correlations (boundary proximity: dem60-dem65):
+      ind60 dem60 dem65
+ind60 1.000            
+dem60 0.448 1.000      
+dem65 0.555 0.978 1.000
+ML standardised paths:
+   lhs   rhs std.all
+ dem60 ind60   0.448
+ dem65 ind60   0.146
+ dem65 dem60   0.913
+PLS  paths:
+      dem60 dem65
+ind60 0.403 0.196
+dem60 0.000 0.786
+PLSc paths:
+      dem60 dem65
+ind60 0.439 0.159
+dem60 0.000 0.909
+rho_A (full sample): ind60 = 0.954; dem60 = 0.882; dem65 = 0.886 
+Predicted 1/sqrt(rho_A) inflation of the PLSc chain, single-antecedent case: ind60 1.024, dem60 1.065 
+lavPredictY vs own de Rooij implementation: max |diff| = 4.00e-15
+
+
+DA blockwise prediction-coefficient magnitude (mean over dem65 items of sum|Gamma|):
+               ind60 dem60
+ML_rule        0.166 0.788
+PLS_chain      0.178 0.795
+PLS_cov_plugin 0.196 0.715
+PLSc_chain     0.136 0.864
+PLSc_cov_BLP   0.169 0.777
+PLSc_chain / PLSc_cov_BLP coefficient-magnitude ratio by block: ind60 0.801; dem60 1.113 
+PLSc_chain / ML_rule   coefficient-magnitude ratio by block: ind60 0.815; dem60 1.097 
+Composite score correlation cor(ind60, dem60) = 0.403; PLSc-disattenuated = 0.439
+SD of full-sample DA predictions, PLSc_chain / PLSc_cov_BLP (per dem65 item): 1.039 1.039 1.039 1.039 
+=== B. 20 x 10-fold CV, seed 20260825 ===
+
+--- Design DA: predict y5,y6,y7,y8 from x1,x2,x3,y1,y2,y3,y4 ---
+         method    RMSE RMSE_MCSE dispersion_slope slope_MCSE    OFR
+          cbsem 2.09359   0.00216           0.9716     0.0015 0.0884
+      pls_chain 2.08639   0.00218           0.9694     0.0014 0.0704
+ pls_cov_plugin 2.09073   0.00190           1.0330     0.0014 0.0702
+     plsc_chain 2.09831   0.00240           0.9264     0.0014 0.0769
+   plsc_cov_blp 2.06682   0.01828           0.9694     0.0119 0.0526
+             lm 2.15625   0.00469           0.9128     0.0027 0.2836
+           mean 3.15234   0.00278          -8.9473     0.0547 0.0299
+ failed_folds dLoss_vs_LM dLoss_vs_mean
+            0       0.273         5.579
+            0       0.303         5.609
+            0       0.281         5.587
+            0       0.259         5.566
+           82       0.178         5.485
+            0       0.000         5.307
+            0      -5.307         0.000
+
+Failure reasons (count):
+
+                            implied construct correlation matrix not positive definite 
+                                                                                     7 
+implied construct correlation matrix not positive definite; a loading also exceeds one 
+                                                                                     8 
+                    inadmissible: disattenuated construct correlation >= 1 (max 1.001) 
+                                                                                     1 
+                    inadmissible: disattenuated construct correlation >= 1 (max 1.014) 
+                                                                                     1 
+                                     inadmissible: standardised loading above one (x1) 
+                                                                                    56 
+                                     inadmissible: standardised loading above one (x2) 
+                                                                                     9 
+
+rho_A across 200 PLSc training fits: ind60 [0.94, 0.97]; dem60 [0.86, 0.90]; dem65 [0.87, 0.90] 
+
+--- Design EA: predict y5,y6,y7,y8 from x1,x2,x3 ---
+         method    RMSE RMSE_MCSE dispersion_slope slope_MCSE    OFR
+          cbsem 2.87127   0.00380           0.8552     0.0065 0.0583
+      pls_chain 2.87311   0.00400           0.8505     0.0068 0.0571
+ pls_cov_plugin 2.86684   0.00388           0.8842     0.0071 0.0558
+     plsc_chain 2.87335   0.00411           0.8378     0.0067 0.0588
+   plsc_cov_blp 2.83275   0.01791           0.8785     0.0344 0.0287
+             lm 2.92652   0.00538           0.7561     0.0089 0.1257
+           mean 3.15234   0.00278          -8.9473     0.0547 0.0299
+ failed_folds dLoss_vs_LM dLoss_vs_mean
+            0       0.359         1.655
+            0       0.347         1.642
+            0       0.385         1.680
+            0       0.343         1.638
+           82       0.177         1.472
+            0       0.000         1.295
+            0      -1.295         0.000
+
+Failure reasons (count):
+
+                            implied construct correlation matrix not positive definite 
+                                                                                     7 
+implied construct correlation matrix not positive definite; a loading also exceeds one 
+                                                                                     8 
+                    inadmissible: disattenuated construct correlation >= 1 (max 1.001) 
+                                                                                     1 
+                    inadmissible: disattenuated construct correlation >= 1 (max 1.014) 
+                                                                                     1 
+                                     inadmissible: standardised loading above one (x1) 
+                                                                                    56 
+                                     inadmissible: standardised loading above one (x2) 
+                                                                                     9 
+
+rho_A across 200 PLSc training fits: ind60 [0.94, 0.97]; dem60 [0.86, 0.90]; dem65 [0.87, 0.90] 
+
+=== C. Common-fold summaries used for Table 2 ===
+$DA
+                   method     RMSE  RMSE_MCSE dispersion_slope slope_MCSE
+cbsem               cbsem 2.048050 0.01821314        0.9791240 0.01170319
+pls_chain       pls_chain 2.038393 0.01941340        0.9803177 0.01181612
+plsc_chain     plsc_chain 2.046027 0.01989720        0.9379009 0.01132198
+plsc_cov_blp plsc_cov_blp 2.066822 0.01828031        0.9694432 0.01188691
+lm                     lm 2.111956 0.01950813        0.9159070 0.01237630
+mean                 mean 3.121258 0.02333960              NaN         NA
+                    OFR common_obs_rep_cells
+cbsem        0.04672289                  880
+pls_chain    0.02709495                  880
+plsc_chain   0.03085260                  880
+plsc_cov_blp 0.04964316                  880
+lm           0.23758057                  880
+mean         0.01040000                  880
+
+$EA
+                   method     RMSE  RMSE_MCSE dispersion_slope slope_MCSE
+cbsem               cbsem 2.847383 0.01820424        0.8466135 0.03307852
+pls_chain       pls_chain 2.845307 0.01880588        0.8508768 0.03687622
+plsc_chain     plsc_chain 2.846958 0.01911864        0.8358500 0.03595993
+plsc_cov_blp plsc_cov_blp 2.832747 0.01790583        0.8784895 0.03435327
+lm                     lm 2.863887 0.01964863        0.8114107 0.03274166
+mean                 mean 3.121258 0.02333960              NaN         NA
+                    OFR common_obs_rep_cells
+cbsem        0.03975793                  880
+pls_chain    0.03549038                  880
+plsc_chain   0.03817710                  880
+plsc_cov_blp 0.03417634                  880
+lm           0.07613188                  880
+mean         0.01040000                  880
+
+
+=== D. ML with and without Bollen's residual covariances, same folds ===
+DA  article  RMSE 2.0936 (MCSE 0.0022); cells without a converged fit: 0
+DA  bollen   RMSE 2.0785 (MCSE 0.0039); cells without a converged fit: 0
+EA  article  RMSE 2.8713 (MCSE 0.0038); cells without a converged fit: 0
+EA  bollen   RMSE 2.8708 (MCSE 0.0037); cells without a converged fit: 0

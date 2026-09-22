@@ -1,0 +1,77 @@
+mobi low-reliability run — 2026-09-18 13:27:33 
+lavaan 0.6.21 | seminr 2.6.0 
+
+
+==================== Case 1: EXP -> SAT (single antecedent, low reliability) ====================
+rho_A: EXP = 0.460; SAT = 0.790 
+1/sqrt(rho_A): EXP = 1.474; SAT = 1.125 
+
+Blockwise prediction-coefficient magnitude (mean over SAT items of sum|Gamma| within block):
+                 EXP
+ML_rule        0.590
+PLS_chain      0.623
+PLS_cov_plugin 0.456
+PLSc_chain     0.908
+PLSc_cov_BLP   0.615
+PLSc_chain / PLSc_cov_BLP coefficient-magnitude ratio by block: EXP 1.476 
+PLSc_chain / ML_rule coefficient-magnitude ratio by block:   EXP 1.539 
+SD of full-sample predictions, PLSc_chain / PLSc_cov_BLP (per SAT item): 1.472 1.472 1.472 
+
+20 x 10-fold CV, seed 20260825
+
+--- Design DA: predict CUSA1,CUSA2,CUSA3 from CUEX1,CUEX2,CUEX3 ---
+         method    RMSE RMSE_MCSE dispersion_slope slope_MCSE    OFR
+          cbsem 1.45703   0.00097           0.9048     0.0040 0.0306
+      pls_chain 1.44968   0.00069           0.9020     0.0026 0.0261
+ pls_cov_plugin 1.46081   0.00080           1.1656     0.0054 0.0254
+     plsc_chain 1.49262   0.00124           0.6318     0.0023 0.0390
+   plsc_cov_blp 1.45382   0.00099           0.9170     0.0039 0.0340
+             lm 1.46095   0.00128           0.8849     0.0051 0.0483
+           mean 1.58524   0.00030          -9.0000     0.0000 0.0085
+ failed_folds dLoss_vs_LM dLoss_vs_mean
+            0       0.016         0.386
+            0       0.037         0.406
+            0       0.008         0.378
+            0      -0.090         0.279
+            0       0.024         0.393
+            0       0.000         0.369
+            0      -0.369         0.000
+
+rho_A across 200 PLSc training fits: EXP [0.39, 0.53]; SAT [0.77, 0.81] 
+
+==================== Case 2: IMAG + EXP -> SAT (correlated antecedents, unequal reliability) ====================
+rho_A: IMAG = 0.745; EXP = 0.461; SAT = 0.781 
+1/sqrt(rho_A): IMAG = 1.158; EXP = 1.473; SAT = 1.131 
+
+Blockwise prediction-coefficient magnitude (mean over SAT items of sum|Gamma| within block):
+                IMAG   EXP
+ML_rule        0.692 0.244
+PLS_chain      0.695 0.262
+PLS_cov_plugin 0.581 0.231
+PLSc_chain     0.705 0.290
+PLSc_cov_BLP   0.681 0.258
+PLSc_chain / PLSc_cov_BLP coefficient-magnitude ratio by block: IMAG 1.036; EXP 1.126 
+PLSc_chain / ML_rule coefficient-magnitude ratio by block:   IMAG 1.018; EXP 1.190 
+SD of full-sample predictions, PLSc_chain / PLSc_cov_BLP (per SAT item): 1.04 1.04 1.04 
+
+20 x 10-fold CV, seed 20260825
+
+--- Design DA: predict CUSA1,CUSA2,CUSA3 from IMAG1,IMAG2,IMAG3,IMAG4,IMAG5,CUEX1,CUEX2,CUEX3 ---
+         method    RMSE RMSE_MCSE dispersion_slope slope_MCSE    OFR
+          cbsem 1.28817   0.00087           0.9597     0.0016 0.0363
+      pls_chain 1.28819   0.00063           0.9532     0.0012 0.0338
+ pls_cov_plugin 1.29014   0.00069           1.1196     0.0015 0.0288
+     plsc_chain 1.31148   0.00324           0.8866     0.0070 0.0642
+   plsc_cov_blp 1.29010   0.00081           0.9648     0.0015 0.0454
+             lm 1.31449   0.00147           0.8960     0.0026 0.1159
+           mean 1.58524   0.00030          -9.0000     0.0000 0.0085
+ failed_folds dLoss_vs_LM dLoss_vs_mean
+            0       0.076         0.866
+            0       0.075         0.865
+            0       0.073         0.862
+            0       0.013         0.803
+            0       0.070         0.860
+            0       0.000         0.790
+            0      -0.790         0.000
+
+rho_A across 200 PLSc training fits: IMAG [0.71, 0.78]; EXP [0.39, 0.53]; SAT [0.76, 0.81] 
