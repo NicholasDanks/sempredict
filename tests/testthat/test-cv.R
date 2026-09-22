@@ -53,7 +53,7 @@ test_that("cvpat() reproduces a hand-computed paired t-test", {
   cv <- cv_predict(ms, pd, pd_y, pd_x_da, k = 5, reps = 1, seed = 11)
   out <- cvpat(cv, "ML", "lm")
   d <- cv$se_obs[, 1, "lm"] - cv$se_obs[, 1, "ML"]
-  tt <- t.test(d)
+  tt <- t.test(d, alternative = "greater")
   expect_equal(out$d, mean(d))
   expect_equal(out$t, unname(tt$statistic))
   expect_equal(out$p, tt$p.value)
@@ -78,11 +78,11 @@ test_that("tutorial oracle: mobi EXP -> SAT, 20 x 10-fold, seed 20260825 (Table 
   expect_equal(get("mean", "RMSE"), 1.5852, tolerance = 5e-4)
   expect_equal(get("PLSc_chain", "RMSE_MCSE"), 0.0012, tolerance = 2e-4)
   expect_equal(unname(cv$fail), rep(0L, 5))
-  # CVPAT on repetition 1: the PLSc chain is the only row nominally worse than lm
+  # CVPAT on repetition 1 (one-sided): the PLSc chain is the only row nominally worse than lm
   tab <- cvpat_table(cv, "lm", sensitivity = FALSE)
   expect_true(tab$d[tab$model == "PLSc_chain"] < 0)
-  expect_equal(round(tab$p[tab$model == "PLSc_chain"], 3), 0.067)
-  expect_equal(round(tab$p[tab$model == "PLSc_implied"], 3), 0.003)
+  expect_equal(round(tab$p[tab$model == "PLSc_chain"], 3), 0.967)
+  expect_equal(round(tab$p[tab$model == "PLSc_implied"], 3), 0.001)
 })
 
 test_that("tutorial oracle: PoliticalDemocracy, 20 x 10-fold, seed 20260825 (Table 2 of the article)", {

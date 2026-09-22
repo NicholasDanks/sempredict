@@ -104,14 +104,18 @@ failures <- function(cv) {
 #' @param cv An object from [cv_predict()].
 #' @param model,benchmark Result column names.
 #' @param rep Which repetition to use (default the first).
-#' @param alternative Passed to [stats::t.test()].
+#' @param alternative Passed to [stats::t.test()]. The default `"greater"` is the
+#'   one-sided test of Liengaard et al. (2021) and Sharma et al. (2023): the
+#'   alternative hypothesis is that the model's loss is lower than the
+#'   benchmark's, so `p > .5` means the loss difference has the wrong sign.
+#'   Use `"two.sided"` only when neither model is favoured a priori.
 #' @return A one-row data frame: `model`, `benchmark`, `rep`, `n`, `d` (mean
 #'   loss difference, benchmark minus model), `t`, `p`.
 #' @references Liengaard, B. D., et al. (2021). Prediction: Coveted, yet
 #'   forsaken? Introducing a cross-validated predictive ability test in
 #'   partial least squares path modeling. *Decision Sciences*, 52(2), 362–392.
 #' @export
-cvpat <- function(cv, model, benchmark = "lm", rep = 1, alternative = "two.sided") {
+cvpat <- function(cv, model, benchmark = "lm", rep = 1, alternative = "greater") {
   stopifnot(inherits(cv, "sem_cv"))
   for (v in c(model, benchmark)) if (!v %in% cv$columns) stop("unknown result column: ", v)
   d <- cv$se_obs[, rep, benchmark] - cv$se_obs[, rep, model]

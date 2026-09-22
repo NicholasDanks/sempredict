@@ -4,7 +4,7 @@
 \alias{cvpat}
 \title{Cross-validated predictive ability test (CVPAT)}
 \usage{
-cvpat(cv, model, benchmark = "lm", rep = 1, alternative = "two.sided")
+cvpat(cv, model, benchmark = "lm", rep = 1, alternative = "greater")
 }
 \arguments{
 \item{cv}{An object from \code{\link[=cv_predict]{cv_predict()}}.}
@@ -13,7 +13,11 @@ cvpat(cv, model, benchmark = "lm", rep = 1, alternative = "two.sided")
 
 \item{rep}{Which repetition to use (default the first).}
 
-\item{alternative}{Passed to \code{\link[stats:t.test]{stats::t.test()}}.}
+\item{alternative}{Passed to \code{\link[stats:t.test]{stats::t.test()}}. The default \code{"greater"} is the
+one-sided test of Liengaard et al. (2021) and Sharma et al. (2023): the
+alternative hypothesis is that the model's loss is lower than the
+benchmark's, so \code{p > .5} means the loss difference has the wrong sign.
+Use \code{"two.sided"} only when neither model is favoured a priori.}
 }
 \value{
 A one-row data frame: \code{model}, \code{benchmark}, \code{rep}, \code{n}, \code{d} (mean
