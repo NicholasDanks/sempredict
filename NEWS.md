@@ -1,3 +1,13 @@
+# sempredict (development version)
+
+* `sem_params()` no longer errors ("missing value where TRUE/FALSE needed") when a
+  PLSc solution has rho_A <= 0: the resulting non-finite loadings and paths are now
+  reported as an inadmissible solution (`admissible = FALSE`, `reason` naming
+  rho_A), as documented. Found in a simulation at n = 100 with weak structural paths.
+* `predict_oos(construction = "chain")` now stops with a clear message instead of
+  returning NaN predictions when the fitted weights, paths or loadings are not
+  finite, so `cv_predict()` counts the fold as a failure.
+
 # sempredict 0.1.2
 
 * `cvpat()` now defaults to the one-sided test of Liengaard et al. (2021) and
