@@ -115,3 +115,17 @@ test_that("tutorial oracle: 82 of 200 PoliticalDemocracy folds are inadmissible"
   expect_equal(sum(grepl("not positive definite", reasons)), 15)
   expect_equal(sum(grepl("correlation >= 1", reasons)), 2)
 })
+
+test_that("a non-finite rho_A (NaN loadings) is reported as inadmissible, not an error", {
+  # BRM S2 sample: seminr::rho_A(A) = -1.018, so PLSc loadings of A are NaN
+  d <- readRDS(test_path("fixtures", "nonfinite_rhoA.rds"))
+  mm <- seminr::constructs(seminr::reflective("A", paste0("a", 1:4)),
+                           seminr::reflective("B", paste0("b", 1:4)),
+                           seminr::reflective("E", paste0("e", 1:3)))
+  sm <- seminr::relationships(seminr::paths(from = c("A", "B"), to = "E"))
+  fit <- suppressWarnings(quiet_pls(d, mm, sm))     # seminr warns "NaNs produced" (sqrt of rho_A < 0)
+  expect_lt(as.numeric(seminr::rho_A(fit, "A")), 0)          # oracle: outside (0, 1]
+  p <- sem_params(fit)
+  expect_false(p$admissible)
+  expect_match(p$reason, "rho_A")
+})

@@ -71,7 +71,7 @@ sem_params.seminr_model <- function(fit, plsc = NULL, ...) {
   blocks <- lapply(stats::setNames(constructs, constructs),
                    function(cn) items[W[, cn] != 0])
   order <- topo_order(B)
-  exo <- constructs[colSums(B != 0) == 0]
+  exo <- constructs[colSums(has_path(B)) == 0]
   types <- fit$mmMatrix[, "type"]
   reflective <- unique(fit$mmMatrix[types == "C", "construct"])
   if (is.null(plsc)) plsc <- length(reflective) > 0
@@ -94,8 +94,10 @@ sem_params.seminr_model <- function(fit, plsc = NULL, ...) {
   Phi_s <- stats::cor(fit$construct_scores)[constructs, constructs]
   estimator <- if (plsc) "PLSc" else "PLS"
   # a squared standardised loading above one is a negative residual variance
+  # (non-finite loadings, from rho_A <= 0, are left to the rho_A check below)
   l2 <- rowSums(L^2)
-  heywood <- plsc && any(l2 > 1 + 1e-8)
+  over <- which(l2 > 1 + 1e-8)
+  heywood <- plsc && length(over) > 0
   also <- if (heywood) "; a loading also exceeds one" else ""
   bad <- function(msg, tag = also)
     new_sem_params(estimator = estimator, Sigma = NULL, mu = mu, sd = s,
@@ -119,7 +121,7 @@ sem_params.seminr_model <- function(fit, plsc = NULL, ...) {
     return(bad("implied construct correlation matrix not positive definite"))
   if (heywood)
     return(bad(sprintf("inadmissible: standardised loading above one (%s)",
-                       paste(names(l2)[l2 > 1 + 1e-8], collapse = ", ")), tag = ""))
+                       paste(names(l2)[over], collapse = ", ")), tag = ""))
   Theta <- diag(pmax(1 - l2, 0), nrow = length(items))
   dimnames(Theta) <- list(items, items)
   Sigma_z <- L %*% Phi %*% t(L) + Theta
@@ -172,12 +174,15 @@ implied_construct_cor <- function(B, Phi_exo, exo, order) {
 }
 
 # Causal (topological) order of the constructs from the path matrix.
+# structural pattern: a NaN coefficient (inadmissible PLSc) is still a specified path
+has_path <- function(B) is.na(B) | B != 0
+
 topo_order <- function(B) {
   constructs <- colnames(B)
   remaining <- constructs
   out <- character(0)
   while (length(remaining)) {
-    free <- remaining[colSums(B[remaining, remaining, drop = FALSE] != 0) == 0]
+    free <- remaining[colSums(has_path(B[remaining, remaining, drop = FALSE])) == 0]
     if (!length(free)) stop("structural model is not recursive")
     out <- c(out, free)
     remaining <- setdiff(remaining, free)
