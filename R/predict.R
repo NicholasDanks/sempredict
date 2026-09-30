@@ -89,12 +89,16 @@ predict_chain <- function(params, newdata, ynames, xnames) {
       eta[, cn] <- (sc - ch$score_center[cn]) / ch$score_scale[cn]
     } else {
       pred <- order[seq_len(match(cn, order) - 1)]
-      pred <- pred[B[pred, cn] != 0]
+      pred <- pred[has_path(B[pred, cn])]
       if (!length(pred)) next                     # exogenous and unobserved
       if (anyNA(eta[, pred])) next
       eta[, cn] <- eta[, pred, drop = FALSE] %*% B[pred, cn]
     }
   }
+  # NaN (not the NA placeholder of an unscored construct) comes from non-finite weights or paths
+  if (any(is.nan(eta)))
+    stop("construct-score chain gives non-finite predictions: the fitted weights or paths ",
+         "are not finite (an inadmissible PLSc solution)")
   Yz <- vapply(ynames, function(it) {
     cn <- names(blocks)[vapply(blocks, function(b) it %in% b, logical(1))][1]
     if (anyNA(eta[, cn]))
@@ -102,6 +106,9 @@ predict_chain <- function(params, newdata, ynames, xnames) {
     eta[, cn] * L[it, cn]
   }, numeric(nrow(Z)))
   Yz <- matrix(Yz, ncol = length(ynames))
+  if (any(!is.finite(Yz)))
+    stop("construct-score chain gives non-finite predictions: a fitted loading is not finite ",
+         "(an inadmissible PLSc solution)")
   Yhat <- sweep(sweep(Yz, 2, params$sd[ynames], "*"), 2, params$mu[ynames], "+")
   dimnames(Yhat) <- list(NULL, ynames)
   Yhat
