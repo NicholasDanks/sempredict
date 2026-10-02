@@ -1,5 +1,11 @@
-# sempredict (development version)
+# sempredict 0.1.3
 
+* `sem_params()` for seminr PLSc models now aligns the implied construct
+  correlations with the loadings by name. Version 0.1.2 multiplied them by
+  position, so the model-implied rule (`predict_oos(construction = "implied")`)
+  was wrong whenever the order in which `relationships()` mentions the
+  constructs differed from their causal order. Models declared in causal order
+  (all examples, the vignette and the tutorial) were not affected.
 * `sem_params()` no longer errors ("missing value where TRUE/FALSE needed") when a
   PLSc solution has rho_A <= 0: the resulting non-finite loadings and paths are now
   reported as an inadmissible solution (`admissible = FALSE`, `reason` naming
