@@ -124,6 +124,8 @@ sem_params.seminr_model <- function(fit, plsc = NULL, ...) {
                        paste(names(l2)[over], collapse = ", ")), tag = ""))
   Theta <- diag(pmax(1 - l2, 0), nrow = length(items))
   dimnames(Theta) <- list(items, items)
+  # Phi is in causal order, L in seminr's construct order: align by name (positional product was a bug, 0.1.2)
+  Phi <- Phi[constructs, constructs]
   Sigma_z <- L %*% Phi %*% t(L) + Theta
   Sigma <- Sigma_z * outer(s, s)
   dimnames(Sigma) <- list(items, items)
