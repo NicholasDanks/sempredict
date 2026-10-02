@@ -1,3 +1,19 @@
+# sempredict 0.1.3
+
+* `sem_params()` for seminr PLSc models now aligns the implied construct
+  correlations with the loadings by name. Version 0.1.2 multiplied them by
+  position, so the model-implied rule (`predict_oos(construction = "implied")`)
+  was wrong whenever the order in which `relationships()` mentions the
+  constructs differed from their causal order. Models declared in causal order
+  (all examples, the vignette and the tutorial) were not affected.
+* `sem_params()` no longer errors ("missing value where TRUE/FALSE needed") when a
+  PLSc solution has rho_A <= 0: the resulting non-finite loadings and paths are now
+  reported as an inadmissible solution (`admissible = FALSE`, `reason` naming
+  rho_A), as documented. Found in a simulation at n = 100 with weak structural paths.
+* `predict_oos(construction = "chain")` now stops with a clear message instead of
+  returning NaN predictions when the fitted weights, paths or loadings are not
+  finite, so `cv_predict()` counts the fold as a failure.
+
 # sempredict 0.1.2
 
 * `cvpat()` now defaults to the one-sided test of Liengaard et al. (2021) and

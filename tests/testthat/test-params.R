@@ -115,3 +115,34 @@ test_that("tutorial oracle: 82 of 200 PoliticalDemocracy folds are inadmissible"
   expect_equal(sum(grepl("not positive definite", reasons)), 15)
   expect_equal(sum(grepl("correlation >= 1", reasons)), 2)
 })
+
+test_that("a non-finite rho_A (NaN loadings) is reported as inadmissible, not an error", {
+  # BRM S2 sample: seminr::rho_A(A) = -1.018, so PLSc loadings of A are NaN
+  d <- readRDS(test_path("fixtures", "nonfinite_rhoA.rds"))
+  mm <- seminr::constructs(seminr::reflective("A", paste0("a", 1:4)),
+                           seminr::reflective("B", paste0("b", 1:4)),
+                           seminr::reflective("E", paste0("e", 1:3)))
+  sm <- seminr::relationships(seminr::paths(from = c("A", "B"), to = "E"))
+  fit <- suppressWarnings(quiet_pls(d, mm, sm))     # seminr warns "NaNs produced" (sqrt of rho_A < 0)
+  expect_lt(as.numeric(seminr::rho_A(fit, "A")), 0)          # oracle: outside (0, 1]
+  p <- sem_params(fit)
+  expect_false(p$admissible)
+  expect_match(p$reason, "rho_A")
+})
+
+test_that("the implied Sigma does not depend on the order relationships are declared in", {
+  # seminr orders constructs by their appearance in relationships(); Phi comes back in causal order.
+  # Declaring dem60 -> dem65 first makes seminr's order (dem60, dem65, ind60) differ from the causal order.
+  sm_b <- seminr::relationships(seminr::paths(from = c("dem60", "ind60"), to = "dem65"),
+                                seminr::paths(from = "ind60", to = "dem60"))
+  fa <- quiet_pls(pd, pd_mm_plsc, pd_sm); fb <- quiet_pls(pd, pd_mm_plsc, sm_b)
+  expect_false(identical(colnames(fb$outer_weights), topo_order(fb$path_coef)))   # precondition: orders differ
+  pa <- sem_params(fa, plsc = TRUE); pb <- sem_params(fb, plsc = TRUE)
+  it <- rownames(pa$Sigma)
+  expect_equal(pb$Sigma[it, it], pa$Sigma, tolerance = 1e-10)
+  # Sigma equals Lambda Phi Lambda' + Theta assembled BY NAME, on the standardised scale
+  Rb <- pb$Lambda %*% pb$Phi[colnames(pb$Lambda), colnames(pb$Lambda)] %*% t(pb$Lambda) + pb$Theta
+  expect_equal(stats::cov2cor(pb$Sigma)[rownames(Rb), rownames(Rb)], Rb, tolerance = 1e-10)
+  pr_a <- predict_oos(pa, pd, pd_y, pd_x_ea, "implied"); pr_b <- predict_oos(pb, pd, pd_y, pd_x_ea, "implied")
+  expect_equal(pr_b, pr_a, tolerance = 1e-10)
+})

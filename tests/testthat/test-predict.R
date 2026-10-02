@@ -60,3 +60,14 @@ test_that("unknown indicators and inadmissible params are refused", {
   p$admissible <- FALSE; p$reason <- "test"
   expect_error(predict_oos(p, mobi, mobi_y, mobi_x, "implied"), "unavailable")
 })
+
+test_that("the chain refuses non-finite loadings instead of returning NaN predictions", {
+  d <- readRDS(test_path("fixtures", "nonfinite_rhoA.rds"))
+  mm <- seminr::constructs(seminr::reflective("A", paste0("a", 1:4)),
+                           seminr::reflective("B", paste0("b", 1:4)),
+                           seminr::reflective("E", paste0("e", 1:3)))
+  sm <- seminr::relationships(seminr::paths(from = c("A", "B"), to = "E"))
+  p <- sem_params(suppressWarnings(quiet_pls(d, mm, sm)))   # seminr: "NaNs produced"
+  expect_error(predict_oos(p, d[1:5, ], paste0("e", 1:3), c(paste0("a", 1:4), paste0("b", 1:4)), "chain"),
+               "non-finite")
+})
