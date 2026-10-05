@@ -6,7 +6,8 @@ test_that("model-implied regression from lavaan equals lavPredictY (oracle)", {
   for (x in list(pd_x_da, pd_x_ea)) {
     ours <- predict_oos(p, pd[-id, ], pd_y, x, construction = "implied")
     theirs <- lavaan::lavPredictY(fit, newdata = pd[-id, ], ynames = pd_y, xnames = x)
-    expect_equal(unname(ours), unname(as.matrix(theirs)), tolerance = 1e-10)
+    # unclass(): lavaan >= 0.6-17 keeps the "lavaan.matrix" class through as.matrix()
+    expect_equal(unname(ours), unclass(unname(as.matrix(theirs))), tolerance = 1e-10)
   }
 })
 
@@ -70,4 +71,11 @@ test_that("the chain refuses non-finite loadings instead of returning NaN predic
   p <- sem_params(suppressWarnings(quiet_pls(d, mm, sm)))   # seminr: "NaNs produced"
   expect_error(predict_oos(p, d[1:5, ], paste0("e", 1:3), c(paste0("a", 1:4), paste0("b", 1:4)), "chain"),
                "non-finite")
+})
+
+test_that("overlapping ynames and xnames are refused by both constructions", {
+  m <- quiet_pls(mobi, mobi_mm_pls, mobi_sm)
+  p <- sem_params(m)
+  for (cc in c("implied", "chain"))
+    expect_error(predict_oos(p, mobi, mobi_y, c(mobi_x, "CUSA1"), cc), "both `ynames` and `xnames`: CUSA1")
 })

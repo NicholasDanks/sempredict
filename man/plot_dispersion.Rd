@@ -9,7 +9,8 @@ plot_dispersion(cv, columns = NULL, rep = 1)
 \arguments{
 \item{cv}{An object from \code{\link[=cv_predict]{cv_predict()}}.}
 
-\item{columns}{Result columns to draw; defaults to all non-benchmark columns.}
+\item{columns}{Result columns to draw; defaults to all non-benchmark columns.
+Columns with no predictions in \code{rep} are dropped with a warning.}
 
 \item{rep}{Repetition to draw.}
 }

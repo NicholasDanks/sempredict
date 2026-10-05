@@ -8,6 +8,7 @@
 #'
 #' @param cv An object from [cv_predict()].
 #' @param columns Result columns to draw; defaults to all non-benchmark columns.
+#'   Columns with no predictions in `rep` are dropped with a warning.
 #' @param rep Repetition to draw.
 #' @return A `ggplot` object. Requires the ggplot2 package.
 #' @export
@@ -19,11 +20,17 @@ plot_dispersion <- function(cv, columns = NULL, rep = 1) {
   dd <- do.call(rbind, lapply(columns, function(m) {
     yh <- matrix(cv$yhat[, rep, m, , drop = FALSE], nrow = nrow(Yobs))
     keep <- stats::complete.cases(yh)
+    if (!any(keep)) return(NULL)
     yc <- scale(Yobs[keep, , drop = FALSE], scale = FALSE); hc <- scale(yh[keep, , drop = FALSE], scale = FALSE)
     data.frame(method = m, observed = as.vector(yc), predicted = as.vector(hc),
                slope = sum(yc * hc) / sum(hc^2), stringsAsFactors = FALSE)
   }))
-  dd$method <- factor(dd$method, levels = columns)
+  drawn <- intersect(columns, dd$method)
+  if (length(drawn) < length(columns))
+    warning("no predictions in repetition ", rep, ": ", paste(setdiff(columns, drawn), collapse = ", "),
+            "; not drawn", call. = FALSE)
+  if (!length(drawn)) stop("no column has predictions in repetition ", rep)
+  dd$method <- factor(dd$method, levels = drawn)
   lab <- unique(dd[, c("method", "slope")])
   lab$text <- sprintf("slope = %.2f", lab$slope)
   ggplot2::ggplot(dd, ggplot2::aes(predicted, observed)) +

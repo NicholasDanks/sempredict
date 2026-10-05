@@ -67,6 +67,7 @@ cv_predict <- function(methods, data, ynames, xnames, k = 10, reps = 1, seed = N
   stopifnot(is.list(methods), length(methods) > 0, !is.null(names(methods)),
             all(nzchar(names(methods))))
   for (m in methods) if (!inherits(m, "sem_method")) stop("`methods` must be a list of sem_method() objects")
+  check_overlap(ynames, xnames)
   benchmarks <- if (is.null(benchmarks)) character(0) else match.arg(benchmarks, c("mean", "lm"), several.ok = TRUE)
   n <- nrow(data)
   if (k < 2 || k > n) stop("`k` must be between 2 and nrow(data)")
@@ -140,7 +141,9 @@ cv_predict <- function(methods, data, ynames, xnames, k = 10, reps = 1, seed = N
           fm <- stats::as.formula(sprintf("cbind(%s) ~ %s", paste(ynames, collapse = ","), paste(xnames, collapse = "+")))
           lmfit <- tryCatch(stats::lm(fm, data = train), error = function(e) e)
           if (inherits(lmfit, "error")) { note_fail(b, conditionMessage(lmfit)); next }
-          out <- stats::predict(lmfit, newdata = test); ins <- stats::predict(lmfit, newdata = train)
+          # with one outcome lm() is not an mlm and predict() returns an unnamed vector
+          out <- matrix(stats::predict(lmfit, newdata = test), ncol = ny, dimnames = list(NULL, ynames))
+          ins <- matrix(stats::predict(lmfit, newdata = train), ncol = ny, dimnames = list(NULL, ynames))
         }
         record(b, r, te, out, Yte)
         mse_in[r, f, b] <- mean((Ytr - as.matrix(ins))^2)

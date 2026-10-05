@@ -29,6 +29,8 @@ assess <- function(cv, common = NULL, digits = 4) {
     ok_all <- is.finite(cv$se_obs[, , common, drop = TRUE])
     ok_all <- matrix(ok_all, nrow(cv$data), reps)
   }
+  # the mean benchmark is constant within a fold, so it has no dispersion slope
+  is_mean <- stats::setNames(cv$column_method == "" & cv$column_construction == "mean", cols)
   rep_rmse <- rep_slope <- rep_ofr <- matrix(NA_real_, reps, length(cols), dimnames = list(NULL, cols))
   for (r in seq_len(reps)) {
     ok <- ok_all[, r]
@@ -39,7 +41,7 @@ assess <- function(cv, common = NULL, digits = 4) {
         sqrt(mean(se[, , , j], na.rm = TRUE)), numeric(1)), na.rm = TRUE)
       yh <- matrix(cv$yhat[ok, r, m, , drop = FALSE], nrow = sum(ok))
       keep <- stats::complete.cases(yh)
-      if (any(keep) && m != "mean") {
+      if (any(keep) && !is_mean[m]) {
         yc <- scale(Yobs[ok, , drop = FALSE][keep, , drop = FALSE], scale = FALSE)
         hc <- scale(yh[keep, , drop = FALSE], scale = FALSE)
         den <- sum(hc^2)
