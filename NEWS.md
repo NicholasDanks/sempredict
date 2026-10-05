@@ -1,4 +1,4 @@
-# sempredict (development version)
+# sempredict 0.1.4
 
 * `cv_predict()` no longer stops with "subscript out of bounds" when there is a
   single outcome and the `"lm"` benchmark (the default) is used: with one
