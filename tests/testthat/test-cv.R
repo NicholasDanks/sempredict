@@ -112,3 +112,38 @@ test_that("plot_dispersion returns a ggplot", {
   cv <- cv_predict(ms, mobi, mobi_y, mobi_x, k = 5, reps = 1, seed = 2, benchmarks = NULL)
   expect_s3_class(plot_dispersion(cv), "ggplot")
 })
+
+test_that("a single outcome works with the lm benchmark (0.1.3 stopped the run)", {
+  ms <- list(ML = lav_method(pd_syntax))
+  cv <- cv_predict(ms, pd, "y5", pd_x_da, k = 5, reps = 1, seed = 4)
+  expect_equal(unname(cv$fail), c(0L, 0L, 0L))
+  expect_true(all(is.finite(cv$se_obs[, 1, "lm"])))
+  # the lm column equals a by-hand fit on each training fold
+  te <- cv$folds[, 1] == 1
+  fm <- stats::as.formula(paste("y5 ~", paste(pd_x_da, collapse = "+")))
+  hand <- stats::predict(stats::lm(fm, data = pd[!te, ]), newdata = pd[te, ])
+  expect_equal(unname(cv$yhat[te, 1, "lm", "y5"]), unname(hand))
+  expect_equal(unname(cv$se_obs[te, 1, "lm"]), unname((pd$y5[te] - hand)^2))
+})
+
+test_that("a model column named 'mean' keeps its slope when the mean benchmark is off", {
+  cv <- cv_predict(list(mean = lav_method(pd_syntax)), pd, pd_y, pd_x_da, k = 5, reps = 1, seed = 1,
+                   benchmarks = "lm")
+  a <- assess(cv)
+  expect_true(is.finite(a$dispersion_slope[a$method == "mean"]))
+})
+
+test_that("overlapping ynames and xnames are refused", {
+  ms <- list(ML = lav_method(pd_syntax))
+  expect_error(cv_predict(ms, pd, pd_y, c(pd_x_da, "y5"), k = 5, seed = 1), "both `ynames` and `xnames`: y5")
+})
+
+test_that("plot_dispersion drops columns with no predictions instead of erroring", {
+  skip_if_not_installed("ggplot2")
+  ms <- list(PLS = pls_method(mobi_mm_pls, mobi_sm), bad = sem_method(function(tr) stop("boom")))
+  cv <- cv_predict(ms, mobi, mobi_y, mobi_x, k = 5, reps = 1, seed = 2, benchmarks = NULL)
+  expect_warning(p <- plot_dispersion(cv), "no predictions in repetition 1: bad")
+  expect_s3_class(p, "ggplot")
+  expect_equal(levels(p$data$method), "PLS")
+  expect_error(suppressWarnings(plot_dispersion(cv, columns = "bad")), "no column")
+})

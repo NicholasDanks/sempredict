@@ -45,6 +45,7 @@ predict_oos <- function(params, newdata, ynames, xnames,
                         construction = c("implied", "chain")) {
   stopifnot(inherits(params, "sem_params"))
   construction <- match.arg(construction)
+  check_overlap(ynames, xnames)
   switch(construction,
          implied = predict_implied(params, newdata, ynames, xnames),
          chain = predict_chain(params, newdata, ynames, xnames))
@@ -112,4 +113,11 @@ predict_chain <- function(params, newdata, ynames, xnames) {
   Yhat <- sweep(sweep(Yz, 2, params$sd[ynames], "*"), 2, params$mu[ynames], "+")
   dimnames(Yhat) <- list(NULL, ynames)
   Yhat
+}
+
+# An outcome that is also a predictor predicts itself exactly.
+check_overlap <- function(ynames, xnames) {
+  both <- intersect(ynames, xnames)
+  if (length(both))
+    stop("indicators in both `ynames` and `xnames`: ", paste(both, collapse = ", "))
 }

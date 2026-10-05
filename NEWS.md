@@ -1,3 +1,21 @@
+# sempredict 0.1.4
+
+* `cv_predict()` no longer stops with "subscript out of bounds" when there is a
+  single outcome and the `"lm"` benchmark (the default) is used: with one
+  response `lm()` is not a multivariate fit and `predict()` returns an unnamed
+  vector, which is now reshaped to a named matrix.
+* `plot_dispersion()` no longer errors when a column has no predictions in the
+  drawn repetition (for example a PLSc `implied` column that was inadmissible
+  on every fold); the column is dropped with a warning.
+* `assess()` identifies the mean benchmark by its role, not its name, so a
+  model column labelled `"mean"` (with the mean benchmark switched off) now
+  gets a dispersion slope.
+* `predict_oos()` and `cv_predict()` now refuse indicators listed in both
+  `ynames` and `xnames`; an outcome used as its own predictor gave perfect,
+  meaningless predictions.
+* Tests: the lavaan oracle test no longer fails on lavaan 0.6-17, whose
+  `as.matrix()` keeps the `"lavaan.matrix"` class.
+
 # sempredict 0.1.3
 
 * `sem_params()` for seminr PLSc models now aligns the implied construct
